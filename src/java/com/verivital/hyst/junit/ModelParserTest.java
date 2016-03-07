@@ -1373,6 +1373,27 @@ public class ModelParserTest
 	}
 	
 	@Test
+	public void testUnsatInvExceptionSimpler()
+	{
+		// simpler model derived from bug reported by omar: 
+		// https://github.com/verivital/hyst/issues/27
+		try
+		{
+			String path = UNIT_BASEDIR + "unsat_inv/";
+			Configuration c = flatten(SpaceExImporter.importModels(path
+					+ "unsat_simpler.cfg", path + "unsat_simpler.xml"));
+
+			Expression.expressionPrinter = DefaultExpressionPrinter.instance;
+			Assert.assertNotEquals(c.init, null);
+
+		}
+		catch (AutomatonExportException e)
+		{
+			throw e;
+		}
+	}
+	
+	@Test
 	public void testUnsatInvException()
 	{
 		// bug reported by omar: https://github.com/verivital/hyst/issues/27
