@@ -5,7 +5,7 @@
     <param name="label" type="label" local="false" />
     <param name="control_i" type="real" local="false" d1="1" d2="1" dynamics="any" />
     <location id="1" name="on" x="310.0" y="248.0" width="198.0" height="82.0">
-      <invariant>control_i == 1</invariant>
+      <invariant>mode == 1</invariant>
       <flow>x' == 0</flow>
     </location>
     <transition source="1" target="1">
@@ -16,24 +16,24 @@
   <component id="controli">
     <param name="i_Li" type="real" local="false" d1="1" d2="1" dynamics="any" />
     <param name="label" type="label" local="false" />
-    <param name="control_i" type="real" local="false" d1="1" d2="1" dynamics="any" />
+    <param name="mode" type="real" local="false" d1="1" d2="1" dynamics="any" />
     <location id="1" name="on" x="319.0" y="237.0" width="208.0" height="70.0">
-      <invariant>control_i == 1</invariant>
-      <flow>control_i' == 0</flow>
+      <invariant>mode == 1</invariant>
+      <flow>mode' == 0</flow>
     </location>
     <location id="2" name="off" x="669.0" y="236.0" width="218.0" height="72.0">
-      <invariant>control_i == 0</invariant>
-      <flow>control_i' == 0</flow>
+      <invariant>mode == 0</invariant>
+      <flow>mode' == 0</flow>
     </location>
     <transition source="1" target="2">
       <label>label</label>
-      <assignment>control_i = 0</assignment>
+      <assignment>mode = 0</assignment>
       <labelposition x="-137.0" y="-68.0" width="284.0" height="72.0" />
       <middlepoint x="473.5" y="178.5" />
     </transition>
     <transition source="2" target="1">
       <label>label</label>
-      <assignment>control_i = 1</assignment>
+      <assignment>mode = 1</assignment>
       <labelposition x="-70.0" y="15.0" width="148.0" height="74.0" />
       <middlepoint x="488.5" y="272.0" />
     </transition>
@@ -41,16 +41,16 @@
   <component id="sys1">
     <param name="x" type="real" local="false" d1="1" d2="1" dynamics="any" controlled="true" />
     <param name="label" type="label" local="false" />
-    <param name="control_i" type="real" local="false" d1="1" d2="1" dynamics="any" controlled="true" />
+    <param name="mode" type="real" local="false" d1="1" d2="1" dynamics="any" controlled="true" />
     <bind component="controli" as="controli_1" x="446.0" y="200.0" width="104.0" height="120.0">
       <map key="i_Li">x</map>
       <map key="label">label</map>
-      <map key="control_i">control_i</map>
+      <map key="mode">mode</map>
     </bind>
     <bind component="converteri" as="converteri_1" x="451.0" y="490.0" width="114.0" height="80.0">
       <map key="x">x</map>
       <map key="label">label</map>
-      <map key="control_i">control_i</map>
+      <map key="control_i">mode</map>
     </bind>
   </component>
 </sspaceex>
