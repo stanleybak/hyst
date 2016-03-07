@@ -29,6 +29,7 @@ import com.verivital.hyst.ir.base.BaseComponent;
 import com.verivital.hyst.ir.network.ComponentInstance;
 import com.verivital.hyst.ir.network.ComponentMapping;
 import com.verivital.hyst.ir.network.NetworkComponent;
+import com.verivital.hyst.main.Hyst;
 import com.verivital.hyst.passes.basic.ConvertIntervalConstantsPass;
 import com.verivital.hyst.passes.flatten.ConvertHavocFlowsPass;
 import com.verivital.hyst.passes.flatten.FlattenAutomatonPass;
@@ -1383,19 +1384,19 @@ public class ModelParserTest
 			Configuration c = flatten(SpaceExImporter.importModels(path
 					+ "unsat_simpler.cfg", path + "unsat_simpler.xml"));
 
-			Expression.expressionPrinter = DefaultExpressionPrinter.instance;
-			Assert.assertNotEquals(c.init, null);
+			Assert.fail("label would block all transitions, should be exception");
 
 		}
 		catch (AutomatonExportException e)
 		{
-			throw e;
+			// expected
 		}
 	}
 	
 	@Test
 	public void testUnsatInvException()
 	{
+		Hyst.verboseMode = true;
 		// bug reported by omar: https://github.com/verivital/hyst/issues/27
 		try
 		{

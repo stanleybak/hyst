@@ -3,6 +3,7 @@ package com.verivital.hyst.passes;
 import com.verivital.hyst.ir.AutomatonExportException;
 import com.verivital.hyst.ir.AutomatonValidationException;
 import com.verivital.hyst.ir.Configuration;
+import com.verivital.hyst.main.Hyst;
 import com.verivital.hyst.util.Preconditions;
 import com.verivital.hyst.util.Preconditions.PreconditionsFailedException;
 
