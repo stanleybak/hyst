@@ -1371,4 +1371,24 @@ public class ModelParserTest
 		Assert.assertTrue(loc1.contains("t >= 5"));
 		Assert.assertEquals(loc3, "t <= 5");
 	}
+	
+	@Test
+	public void testUnsatInvException()
+	{
+		// bug reported by omar: https://github.com/verivital/hyst/issues/27
+		try
+		{
+			String path = UNIT_BASEDIR + "unsat_inv/";
+			Configuration c = flatten(SpaceExImporter.importModels(path
+					+ "unsat_inv.cfg", path + "unsat_inv.xml"));
+
+			Expression.expressionPrinter = DefaultExpressionPrinter.instance;
+			Assert.assertNotEquals(c.init, null);
+
+		}
+		catch (AutomatonExportException e)
+		{
+			throw e;
+		}
+	}
 }

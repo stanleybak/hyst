@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<sspaceex xmlns="http://www-verimag.imag.fr/xml-namespaces/sspaceex" version="0.2" math="SpaceEx">
+  <component id="converteri">
+    <param name="i_Li" type="real" local="false" d1="1" d2="1" dynamics="any" />
+    <param name="jump_i" type="label" local="false" />
+    <param name="V_ini" type="real" local="false" d1="1" d2="1" dynamics="const" />
+    <param name="control_i" type="real" local="false" d1="1" d2="1" dynamics="any" />
+    <location id="1" name="close_i" x="310.0" y="248.0" width="198.0" height="82.0">
+      <invariant>control_i == 1</invariant>
+      <flow>i_Li' == i_Li+V_ini</flow>
+    </location>
+    <transition source="1" target="1">
+      <label>jump_i</label>
+      <labelposition x="-18.0" y="-61.0" />
+    </transition>
+  </component>
+  <component id="converterj">
+    <param name="i_Lj" type="real" local="false" d1="1" d2="1" dynamics="any" />
+    <param name="jump_j" type="label" local="false" />
+    <param name="V_inj" type="real" local="false" d1="1" d2="1" dynamics="const" />
+    <param name="control_j" type="real" local="false" d1="1" d2="1" dynamics="any" />
+    <location id="1" name="close_j" x="356.0" y="206.0" width="240.0" height="86.0">
+      <invariant>control_j == 1</invariant>
+      <flow>i_Lj' == i_Lj+V_inj</flow>
+    </location>
+    <transition source="1" target="1">
+      <label>jump_j</label>
+      <labelposition x="-20.0" y="-62.0" />
+    </transition>
+  </component>
+  <component id="controli">
+    <param name="i_Li" type="real" local="false" d1="1" d2="1" dynamics="any" />
+    <param name="x_pui" type="real" local="false" d1="1" d2="1" dynamics="any" />
+    <param name="jump_i" type="label" local="false" />
+    <param name="x_puj" type="real" local="false" d1="1" d2="1" dynamics="any" />
+    <param name="control_i" type="real" local="false" d1="1" d2="1" dynamics="any" />
+    <location id="1" name="close_i" x="319.0" y="237.0" width="208.0" height="70.0">
+      <invariant>control_i == 1</invariant>
+      <flow>x_pui' == x_puj - x_pui + i_Li &amp; control_i' == 0</flow>
+    </location>
+    <location id="2" name="open_i" x="669.0" y="236.0" width="218.0" height="72.0">
+      <invariant>control_i == 0</invariant>
+      <flow>x_pui' == x_puj - x_pui - i_Li &amp; control_i' == 0</flow>
+    </location>
+    <transition source="1" target="2">
+      <label>jump_i</label>
+      <guard>x_pui &gt;= 0</guard>
+      <assignment>control_i = 0</assignment>
+      <labelposition x="-137.0" y="-68.0" width="284.0" height="72.0" />
+      <middlepoint x="473.5" y="178.5" />
+    </transition>
+    <transition source="2" target="1">
+      <label>jump_i</label>
+      <guard>x_pui &lt;= 0</guard>
+      <assignment>control_i = 1</assignment>
+      <labelposition x="-70.0" y="15.0" width="148.0" height="74.0" />
+      <middlepoint x="488.5" y="272.0" />
+    </transition>
+  </component>
+  <component id="controlj">
+    <param name="i_Lj" type="real" local="false" d1="1" d2="1" dynamics="any" />
+    <param name="x_puj" type="real" local="false" d1="1" d2="1" dynamics="any" />
+    <param name="jump_j" type="label" local="false" />
+    <param name="x_pui" type="real" local="false" d1="1" d2="1" dynamics="any" />
+    <param name="control_j" type="real" local="false" d1="1" d2="1" dynamics="any" />
+    <location id="1" name="close_j" x="280.0" y="132.0" width="238.0" height="72.0">
+      <invariant>control_j == 1</invariant>
+      <flow>x_puj' == x_pui - x_puj + i_Lj  &amp; control_j' == 0</flow>
+    </location>
+    <location id="2" name="open_j" x="636.0" y="135.0" width="230.0" height="78.0">
+      <invariant>control_j == 0</invariant>
+      <flow>x_puj' == x_pui - x_puj - i_Lj &amp; control_j' == 0</flow>
+    </location>
+    <transition source="1" target="2">
+      <label>jump_j</label>
+      <guard>x_puj &gt;= 0</guard>
+      <assignment>control_j = 0</assignment>
+      <labelposition x="-131.0" y="-69.0" width="286.0" height="66.0" />
+      <middlepoint x="452.0" y="84.5" />
+    </transition>
+    <transition source="2" target="1">
+      <label>jump_j</label>
+      <guard>x_puj &lt;= 0</guard>
+      <assignment>control_j = 1</assignment>
+      <labelposition x="-73.0" y="52.0" width="148.0" height="66.0" />
+      <middlepoint x="457.5" y="170.5" />
+    </transition>
+  </component>
+  <component id="clock">
+    <param name="gt" type="real" local="false" d1="1" d2="1" dynamics="any" />
+    <param name="tmax" type="real" local="false" d1="1" d2="1" dynamics="const" />
+    <location id="1" name="clock1" x="240.0" y="140.0" width="162.0" height="72.0">
+      <invariant>gt &gt;= 0 &amp; gt &lt;= tmax</invariant>
+      <flow>gt' == 1</flow>
+    </location>
+  </component>
+  <component id="sys1">
+    <param name="gt" type="real" local="false" d1="1" d2="1" dynamics="any" controlled="true" />
+    <param name="tmax" type="real" local="false" d1="1" d2="1" dynamics="const" controlled="true" />
+    <param name="i_Li" type="real" local="false" d1="1" d2="1" dynamics="any" controlled="true" />
+    <param name="x_pui" type="real" local="false" d1="1" d2="1" dynamics="any" controlled="true" />
+    <param name="jump_i" type="label" local="false" />
+    <param name="x_puj" type="real" local="false" d1="1" d2="1" dynamics="any" controlled="true" />
+    <param name="control_i" type="real" local="false" d1="1" d2="1" dynamics="any" controlled="true" />
+    <param name="i_Lj" type="real" local="false" d1="1" d2="1" dynamics="any" controlled="true" />
+    <param name="jump_j" type="label" local="false" />
+    <param name="control_j" type="real" local="false" d1="1" d2="1" dynamics="any" controlled="true" />
+    <param name="V_ini" type="real" local="false" d1="1" d2="1" dynamics="const" controlled="true" />
+    <param name="V_inj" type="real" local="false" d1="1" d2="1" dynamics="const" controlled="true" />
+    <bind component="clock" as="clock_1" x="440.0" y="82.0">
+      <map key="gt">gt</map>
+      <map key="tmax">0.07</map>
+    </bind>
+    <bind component="controli" as="controli_1" x="446.0" y="200.0" width="104.0" height="120.0">
+      <map key="i_Li">i_Li</map>
+      <map key="x_pui">x_pui</map>
+      <map key="jump_i">jump_i</map>
+      <map key="x_puj">x_puj</map>
+      <map key="control_i">control_i</map>
+    </bind>
+    <bind component="controlj" as="controlj_1" x="448.0" y="352.0" width="116.0" height="120.0">
+      <map key="i_Lj">i_Lj</map>
+      <map key="x_puj">x_puj</map>
+      <map key="jump_j">jump_j</map>
+      <map key="x_pui">x_pui</map>
+      <map key="control_j">control_j</map>
+    </bind>
+    <bind component="converteri" as="converteri_1" x="451.0" y="490.0" width="114.0" height="80.0">
+      <map key="i_Li">i_Li</map>
+      <map key="jump_i">jump_i</map>
+      <map key="V_ini">70</map>
+      <map key="control_i">control_i</map>
+    </bind>
+    <bind component="converterj" as="converterj_1" x="458.0" y="614.0" width="122.0" height="76.0">
+      <map key="i_Lj">i_Lj</map>
+      <map key="jump_j">jump_j</map>
+      <map key="V_inj">70</map>
+      <map key="control_j">control_j</map>
+    </bind>
+  </component>
+</sspaceex>
+
