@@ -1,0 +1,20 @@
+[Desktop Entry]
+Type=Action
+Name[en_US]=Open with HyCreate2
+Name[en]=Open with HyCreate2
+Name[C]=Open with HyCreate2
+Icon[en_US]=face-angel
+Icon[en]=face-angel
+Icon[C]=face-angel
+ToolbarLabel[en_US]=Open with HyCreate2
+ToolbarLabel[en]=Open with HyCreate2
+ToolbarLabel[C]=Open with HyCreate2
+Profiles=profile-zero;
+
+[X-Action-Profile profile-zero]
+Name[en_US]=Default profile
+Name[en]=Default profile
+Name[C]=Default profile
+Exec=java -jar /home/stan/tools/HyCreate2.8/HyCreate2.8.jar %d/%b
+Path=/home/stan
+Basenames=*.hyc2;

@@ -1,0 +1,20 @@
+[Desktop Entry]
+Type=Action
+Name[en_US]=Hypy (SpaceEx)
+Name[en]=Hypy (SpaceEx)
+Name[C]=Hypy (SpaceEx)
+Icon[en_US]=face-cool-symbolic
+Icon[en]=face-cool-symbolic
+Icon[C]=face-cool-symbolic
+ToolbarLabel[en_US]=Hypy (SpaceEx)
+ToolbarLabel[en]=Hypy (SpaceEx)
+ToolbarLabel[C]=Hypy (SpaceEx)
+Profiles=profile-zero;
+
+[X-Action-Profile profile-zero]
+Name[en_US]=Default profile
+Name[en]=Default profile
+Name[C]=Default profile
+Exec=python /home/stan/repositories/hyst/src/hybridpy/hybridpy/hypy.py spaceex %w.xml %w_spaceex.png -it "eog -n" || read -p 'Press [enter] to exit...'
+ExecutionMode=Terminal
+Basenames=*.cfg;*.xml;

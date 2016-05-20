@@ -1,0 +1,21 @@
+[Desktop Entry]
+Type=Action
+Name[en_US]=Run with HyCreate2
+Name[en]=Run with HyCreate2
+Name[C]=Run with HyCreate2
+Icon[en_US]=face-monkey
+Icon[en]=face-monkey
+Icon[C]=face-monkey
+ToolbarLabel[en_US]=Run with HyCreate2
+ToolbarLabel[en]=Run with HyCreate2
+ToolbarLabel[C]=Run with HyCreate2
+Profiles=profile-zero;
+
+[X-Action-Profile profile-zero]
+Name[en_US]=Default profile
+Name[en]=Default profile
+Name[C]=Default profile
+Exec=python /home/stan/repositories/hyst/src/hybridpy/hybridpy/tool_hycreate.py %d/%b  ; read -p 'Press [enter] to exit...'
+Path=/home/stan
+ExecutionMode=Terminal
+Basenames=*;!*.xml;

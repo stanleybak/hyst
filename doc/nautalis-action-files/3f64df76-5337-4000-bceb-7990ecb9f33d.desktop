@@ -1,0 +1,20 @@
+[Desktop Entry]
+Type=Action
+Name[en_US]=Run with SpaceEx
+Name[en]=Run with SpaceEx
+Name[C]=Run with SpaceEx
+Icon[en_US]=face-cool
+Icon[en]=face-cool
+Icon[C]=face-cool
+ToolbarLabel[en_US]=Run with SpaceEx
+ToolbarLabel[en]=Run with SpaceEx
+ToolbarLabel[C]=Run with SpaceEx
+Profiles=profile-zero;
+
+[X-Action-Profile profile-zero]
+Name[en_US]=Default profile
+Name[en]=Default profile
+Name[C]=Default profile
+Exec=python /home/stan/repositories/hyst/src/hybridpy/hybridpy/tool_spaceex.py %b ;  read -p 'Press [enter] to exit...'
+ExecutionMode=Terminal
+Basenames=*.xml;

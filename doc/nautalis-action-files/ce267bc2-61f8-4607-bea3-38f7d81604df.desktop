@@ -1,0 +1,20 @@
+[Desktop Entry]
+Type=Action
+Name[en_US]=Open with SpaceEx Model Editor
+Name[en]=Open with SpaceEx Model Editor
+Name[C]=Open with SpaceEx Model Editor
+Icon[en_US]=gnome-searchtool
+Icon[en]=gnome-searchtool
+Icon[C]=gnome-searchtool
+ToolbarLabel[en_US]=Open with SpaceEx Model Editor
+ToolbarLabel[en]=Open with SpaceEx Model Editor
+ToolbarLabel[C]=Open with SpaceEx Model Editor
+Profiles=profile-zero;
+
+[X-Action-Profile profile-zero]
+Name[en_US]=Run SpaceEx Model Editor
+Name[en]=Run SpaceEx Model Editor
+Name[C]=Run SpaceEx Model Editor
+Exec=java -jar /home/stan/tools/spaceexMOE.0.9.4.jar %b
+Basenames=*.xml;
+Folders=*;

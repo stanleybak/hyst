@@ -1,0 +1,20 @@
+[Desktop Entry]
+Type=Action
+Name[en_US]=Run with Flow*
+Name[en]=Run with Flow*
+Name[C]=Run with Flow*
+Icon[en_US]=face-devilish
+Icon[en]=face-devilish
+Icon[C]=face-devilish
+ToolbarLabel[en_US]=Run with Flow*
+ToolbarLabel[en]=Run with Flow*
+ToolbarLabel[C]=Run with Flow*
+Profiles=profile-zero;
+
+[X-Action-Profile profile-zero]
+Name[en_US]=Default profile
+Name[en]=Default profile
+Name[C]=Default profile
+Exec=python /home/stan/repositories/hyst/src/hybridpy/hybridpy/tool_flowstar.py %b  ; read -p 'Press [enter] to exit...'
+ExecutionMode=Terminal
+Basenames=*;!*.xml;

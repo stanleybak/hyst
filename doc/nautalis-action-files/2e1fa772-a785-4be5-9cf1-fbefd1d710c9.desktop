@@ -1,0 +1,20 @@
+[Desktop Entry]
+Type=Action
+Name[en_US]=Hypy (pysim)
+Name[en]=Hypy (pysim)
+Name[C]=Hypy (pysim)
+Icon[en_US]=face-cool-symbolic
+Icon[en]=face-cool-symbolic
+Icon[C]=face-cool-symbolic
+ToolbarLabel[en_US]=Hypy (pysim)
+ToolbarLabel[en]=Hypy (pysim)
+ToolbarLabel[C]=Hypy (pysim)
+Profiles=profile-zero;
+
+[X-Action-Profile profile-zero]
+Name[en_US]=Default profile
+Name[en]=Default profile
+Name[C]=Default profile
+Exec=python /home/stan/repositories/hyst/src/hybridpy/hybridpy/hypy.py pysim %w.xml %w_pysim.png -it "eog -n" || read -p 'Press [enter] to exit...'
+ExecutionMode=Terminal
+Basenames=*.cfg;*.xml;

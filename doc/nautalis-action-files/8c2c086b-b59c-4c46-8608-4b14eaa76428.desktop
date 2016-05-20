@@ -1,0 +1,20 @@
+[Desktop Entry]
+Type=Action
+Name[en_US]=Run with Pysim
+Name[en]=Run with Pysim
+Name[C]=Run with Pysim
+Icon[en_US]=face-cool-symbolic
+Icon[en]=face-cool-symbolic
+Icon[C]=face-cool-symbolic
+ToolbarLabel[en_US]=Run with Pysim
+ToolbarLabel[en]=Run with Pysim
+ToolbarLabel[C]=Run with Pysim
+Profiles=profile-zero;
+
+[X-Action-Profile profile-zero]
+Name[en_US]=Default profile
+Name[en]=Default profile
+Name[C]=Default profile
+Exec=python /home/stan/repositories/hyst/src/hybridpy/hybridpy/tool_pysim.py %b ;  read -p 'Press [enter] to exit...'
+ExecutionMode=Terminal
+Basenames=*.py;

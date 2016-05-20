@@ -1,0 +1,21 @@
+[Desktop Entry]
+Type=Action
+Name[en_US]=Open with Hyst
+Name[en]=Open with Hyst
+Name[C]=Open with Hyst
+Icon[en_US]=applications-geography
+Icon[en]=applications-geography
+Icon[C]=applications-geography
+ToolbarLabel[en_US]=Open with Hyst
+ToolbarLabel[en]=Open with Hyst
+ToolbarLabel[C]=Open with Hyst
+Profiles=profile-zero;
+
+[X-Action-Profile profile-zero]
+Name[en_US]=Hyst
+Name[en]=Hyst
+Name[C]=Hyst
+Exec=java -jar /home/stan/repositories/hyst/src/Hyst.jar -gui %d/%b
+Path=/home/stan
+ExecutionMode=Terminal
+Basenames=*.xml;
