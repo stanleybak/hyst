@@ -380,8 +380,9 @@ Adding Links to Right-Click Menu in Ubuntu:
 
 To add items like "Run with SpaceEx (hypy)" or "Run with Flow*" to the right click context menu in Ubuntu/Gnome, you can use the Nautilus Actions Configuration Tool. Some help related to this is here: http://www.howtogeek.com/116807/how-to-easily-add-custom-right-click-options-to-ubuntus-file-manager/ . The command to do the install is: sudo apt-get install nautilus-actions . Basically, when you run it you get a GUI to allow you to give commands to run, as well as filters for when they're enabled / disabled (for example, SpaceEx Model Editor is only there if you right click a .xml file). 
 
-You can use the Import Assistant (Tools-> Import Assistant) in the Nautilus Actions Configuration Tool to 
-import a predefined set of actions given in hyst/doc/nautalis-action-files. The actions may then need to be customized to your system's paths (the paths to the tools, for example, may be different than on my computer). Afterwards, you may need to restart nautilus for the changes to take effect (logging out and logging back in should work).
+You can use the Import Assistant (Tools-> Import Assistant) in the Nautilus Actions Configuration Tool to import a predefined set of actions given in hyst/doc/nautalis-action-files. The actions may then need to be customized to your system's paths (the paths to the tools, for example, may be different than on my computer). You can directly add items to the right click menu (rather than having a sub-menu), by going to Edit -> Preferences -> Runtime preferences -> Nautilus menu layout and unchecking "Create a root 'Nautalius-Actions' menu" . To enable the terminal, you need to go to Edit -> Preferences -> Runtime Execution and add the command pattern: "gnome-terminal -x bash -c COMMAND" .
+
+Afterwards, you may need to restart nautilus for the imported actions to take effect (logging out and logging back in should work).
 
 *****************************************
 ADDITIONAL PRINTER DOCUMENTATION
