@@ -170,12 +170,8 @@ public class ContinuizationPassTests
 				1e-3);
 	}
 	
-	@Test 
-	public void testUrgentDoubleIntegrator()
+	private Configuration makeUrgentDI()
 	{
-		if (!PythonBridge.hasPython())
-			return;
-		
 		String[][] dynamics = {{"x", "v", "0"}, {"v", "a", "0"}, {"a", "-10 * v - 3 * a", "0"}};
 		Configuration c = AutomatonUtil.makeDebugConfiguration(dynamics);
 		
@@ -195,6 +191,18 @@ public class ContinuizationPassTests
 		c.init.put("init", FormulaParser.parseInitialForbidden("0 <= x <= 0.1 && v == 0 && a == 0"));
 		
 		c.validate();
+		
+		return c;
+	}
+	
+	@Test 
+	public void testUrgentDoubleIntegrator()
+	{
+		if (!PythonBridge.hasPython())
+			return;
+		
+		Configuration c = makeUrgentDI();
+		BaseComponent ha = (BaseComponent)c.root;
 		
 		String continuizationParam = ContinuizationPass.makeParamString("a", "t", 0.005, false, 
 				Arrays.asList(new Double[]{1.5, 5.0}),
@@ -239,5 +247,21 @@ public class ContinuizationPassTests
 				1e-3);
 		Assert.assertEquals("mode2 a_der.min is -0.075", -0.075, running2.flowDynamics.get("a").getInterval().min,
 				1e-3);
+	}
+	
+	@Test 
+	public void testUrgentDoubleIntegratorSingleDomain()
+	{
+		if (!PythonBridge.hasPython())
+			return;
+		
+		Configuration c = makeUrgentDI();
+		
+		String continuizationParam = ContinuizationPass.makeParamString("a", null, 0.005, false, 
+				Arrays.asList(new Double[]{5.0}),
+				Arrays.asList(new Double[]{4.0}));
+		
+		// this relies on hypy and scipy
+		new ContinuizationPass().runTransformationPass(c, continuizationParam);
 	}
 }
