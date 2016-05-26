@@ -769,6 +769,9 @@ public class ContinuizationPass extends TransformationPass
 			i.max = Double.parseDouble(comma_parts[1]);
 			
 			rv.add(i);
+			
+			Hyst.log("Simulated Range for domain " + rv.size() + " was [" +
+					i.min + ", " + i.max + "]");
 		}
 		
 		return rv;

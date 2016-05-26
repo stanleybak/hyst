@@ -60,7 +60,11 @@ public class MatlabBridge
 	}
 
 	// these static flags 
-	private static boolean blockMatlab = false;
+	static
+	{
+		System.out.println(". MatlabBridge forcing blockMatlab = true");
+	}
+	private static boolean blockMatlab = true;
 	private static Status statusMatlab = Status.UNKNOWN;
 	
 	/**

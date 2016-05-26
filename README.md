@@ -246,10 +246,10 @@ Project -> Properties -> Java Build Path -> Libraries -> Add External Jar -> sel
 To run the .class files directly, rather than from the .jar, you also need this jar on your classpath (option -cp to java).
 
 *******************************************************************************
-Python Interface and Hypy (by Stanley Bak)
+Python Interface (by Stanley Bak)
 *******************************************************************************
 
-Hyst has an optional interface with python, which may be required for some transformation passes. To test if python and the required packages are detected correctly, use the -testpython flag from the command line. If python is not setup correctly, you can add the -debug flag to get terminal output to get more insight into the problem.
+Hyst has an optional interface with python (pythonbridge), which may be required for some transformation passes. To test if python and the required packages are detected correctly, use the -testpython flag from the command line. If python is not setup correctly, you can add the -debug flag to get terminal output to get more insight into the problem.
 
 Currently, Python 2.7 needs to be installed, as well as the following packages:
 
@@ -278,6 +278,9 @@ Hypy can be used to run Hyst (including its transformation passes), as well as v
 
 #### Setup
 
+The tools may need various packaged to produce plots. You may need to run:
+sudo apt-get install gimp plotutils gnuplot
+
 For easy usage, point your PYTHONPATH environment variable to this directory. To setup hypy to run the tools, you'll need to define environment variables to the appropriate binaries. At a minimum (for conversion), you must set HYST_BIN to point to the Hyst jar file. On Ubuntu, in your ~/.profile file you can do something like:
 
 # tool environment variables
@@ -291,6 +294,7 @@ export HYCREATE_BIN="$TOOL_DIR/tools/HyCreate2.8/HyCreate2.8.jar"
 
 export HYST_BIN="$HYST_DIR/src/Hyst.jar"
 export PYTHONPATH="${PYTHONPATH}:$HYST_DIR/src/hybridpy"
+
 
 #### Pysim
 

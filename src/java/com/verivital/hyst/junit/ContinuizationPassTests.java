@@ -1,5 +1,6 @@
 package com.verivital.hyst.junit;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -23,6 +24,7 @@ import com.verivital.hyst.ir.base.AutomatonMode;
 import com.verivital.hyst.ir.base.AutomatonTransition;
 import com.verivital.hyst.ir.base.BaseComponent;
 import com.verivital.hyst.ir.base.ExpressionInterval;
+import com.verivital.hyst.main.Hyst;
 import com.verivital.hyst.passes.complex.ContinuizationPass;
 import com.verivital.hyst.python.PythonBridge;
 import com.verivital.hyst.util.AutomatonUtil;
@@ -170,8 +172,12 @@ public class ContinuizationPassTests
 				1e-3);
 	}
 	
-	private Configuration makeUrgentDI()
+	@Test 
+	public void testUrgentDoubleIntegrator()
 	{
+		if (!PythonBridge.hasPython())
+			return;
+		
 		String[][] dynamics = {{"x", "v", "0"}, {"v", "a", "0"}, {"a", "-10 * v - 3 * a", "0"}};
 		Configuration c = AutomatonUtil.makeDebugConfiguration(dynamics);
 		
@@ -191,18 +197,6 @@ public class ContinuizationPassTests
 		c.init.put("init", FormulaParser.parseInitialForbidden("0 <= x <= 0.1 && v == 0 && a == 0"));
 		
 		c.validate();
-		
-		return c;
-	}
-	
-	@Test 
-	public void testUrgentDoubleIntegrator()
-	{
-		if (!PythonBridge.hasPython())
-			return;
-		
-		Configuration c = makeUrgentDI();
-		BaseComponent ha = (BaseComponent)c.root;
 		
 		String continuizationParam = ContinuizationPass.makeParamString("a", "t", 0.005, false, 
 				Arrays.asList(new Double[]{1.5, 5.0}),
@@ -255,11 +249,32 @@ public class ContinuizationPassTests
 		if (!PythonBridge.hasPython())
 			return;
 		
-		Configuration c = makeUrgentDI();
+		String[][] dynamics = {{"x", "v", "0"}, {"v", "a", "0"}, 
+				{"a", "-10 * v - 3 * a", "0"}, {"ader", "-10*a + 30 * v + 9 * a", "-9.5"}};
+		Configuration c = AutomatonUtil.makeDebugConfiguration(dynamics);
+		
+		BaseComponent ha = (BaseComponent)c.root;
+		AutomatonMode on = ha.modes.get("on");
+		
+		AutomatonMode init = ha.createMode("init");
+		init.flowDynamics = null;
+		init.invariant = Constant.TRUE;
+		init.urgent = true;
+		
+		AutomatonTransition at = ha.createTransition(init, on);
+		at.guard = Constant.TRUE;
+		at.reset.put("a", new ExpressionInterval("10 * (1 - x) + 3 * (-v)"));
+		
+		c.init.clear();
+		c.init.put("init", FormulaParser.parseInitialForbidden("0 <= x <= 0.1 && v == 0 && a == 0 && ader == 0"));
+		
+		c.validate();
 		
 		String continuizationParam = ContinuizationPass.makeParamString("a", null, 0.005, false, 
 				Arrays.asList(new Double[]{5.0}),
 				Arrays.asList(new Double[]{4.0}));
+		
+		Hyst.verboseMode = true;
 		
 		// this relies on hypy and scipy
 		new ContinuizationPass().runTransformationPass(c, continuizationParam);
