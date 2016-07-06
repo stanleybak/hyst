@@ -92,6 +92,56 @@ def simulate_der_range(ha, der_var_index, mode_name, point, time_ranges, max_jum
 
     return ranges_to_string(ranges)
 
+def simulate_exp_range(ha, exp_func, mode_name, point, time_ranges, max_jumps=500, solver='vode'):
+    '''
+    simulates a hybrid automaton from a given mode/point, getting the interval range 
+    for an expression given as the function exp_func (which takes in the current state at a point),
+    for each time in a selected list of time ranges
+
+    time_ranges is an array of (min,max) time intervals which correspond to the result
+
+    returns a semi-colon separated list of intervals, where each interval is a comma-seperated
+    pair of numbers 'min,max'
+    '''
+
+    q = (ha.modes[mode_name], point)
+
+    all_times = []
+
+    for time_range in time_ranges:
+        all_times += [time_range[0], time_range[1]]
+
+    all_times.sort()
+
+    state_list = simulate_with_times(q, all_times, max_jumps, solver)
+
+    ranges = [[float("inf"), float("-inf")] for _ in xrange(len(time_ranges))]
+
+    for mode_sim in state_list:
+        mode = ha.modes[mode_sim.mode_name]
+
+        # skip urgent modes as derivatives are in transit
+        if mode.der is None:
+            continue
+
+        for i in xrange(len(mode_sim.times)):
+            time = mode_sim.times[i]
+            pt = mode_sim.points[i]
+        
+            exp_val = exp_func(pt)
+
+            for r_index in xrange(len(ranges)):
+                time_range = time_ranges[r_index]
+                
+                if time < time_range[0] or time > time_range[1]:
+                    continue
+
+                r = ranges[r_index]
+                r[0] = min(r[0], exp_val)
+                r[1] = max(r[1], exp_val)
+
+    return ranges_to_string(ranges)
+
 def ranges_to_string(ranges):
     ''' converts a list of interval ranges to a semicolon-separated list of
     comma-separated values

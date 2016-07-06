@@ -27,6 +27,27 @@ class TestPySimUtils(unittest.TestCase):
         r = HyperRectangle([(1, 2), (10, 20), (100, 200), (500, 500)])        
         self.assertTrue(len(r.star()) == 8, 'incorrect number of star points')
 
+    def test_simulate_exp_range(self):
+        'test simulate_der_range function'
+        
+        ha = define_ha()
+        
+        # get the range between times 0-2 and times 1-3
+        # expression = 0.1 * y
+        # t' == 1, y' == 2t
+        exp_func = lambda point: point[1] * 0.1
+        res = util.simulate_exp_range(ha, exp_func, 'on', [0.0, 0.0], [(0, 2), (1, 3)])
+
+        parts = res.split(';')
+        self.assertEqual(len(parts), 2)
+        a, b = parts[0].split(',')        
+        c, d = parts[1].split(',')        
+
+        self.assertAlmostEqual(float(a), 0.0, places=3)
+        self.assertAlmostEqual(float(b), 0.4, places=3)
+        self.assertAlmostEqual(float(c), 0.2, places=3) TODO: FIGURE OUT WHY THIS IS FAILING
+        self.assertAlmostEqual(float(d), 0.6, places=3)
+
     def test_simulate_der_range(self):
         'test simulate_der_range function'
         
