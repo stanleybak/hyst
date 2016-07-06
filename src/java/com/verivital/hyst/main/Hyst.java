@@ -31,6 +31,7 @@ import com.verivital.hyst.passes.basic.SplitDisjunctionGuardsPass;
 import com.verivital.hyst.passes.basic.SubstituteConstantsPass;
 import com.verivital.hyst.passes.basic.TimeScalePass;
 import com.verivital.hyst.passes.complex.ContinuizationPass;
+import com.verivital.hyst.passes.complex.ContinuizationPassTT;
 import com.verivital.hyst.passes.complex.ConvertLutFlowsPass;
 import com.verivital.hyst.passes.complex.FlattenAutomatonPass;
 import com.verivital.hyst.passes.complex.OrderReductionPass;
@@ -102,8 +103,9 @@ public class Hyst
 			new PseudoInvariantPass(), new PseudoInvariantSimulatePass(), new TimeScalePass(),
 			new SubstituteConstantsPass(), new SimplifyExpressionsPass(),
 			new SplitDisjunctionGuardsPass(), new RemoveSimpleUnsatInvariantsPass(),
-			new ShortenModeNamesPass(), new ContinuizationPass(), new HybridizeMixedTriggeredPass(),
-			new FlattenAutomatonPass(), new OrderReductionPass(), new ConvertLutFlowsPass(), };
+			new ShortenModeNamesPass(), new ContinuizationPass(), new ContinuizationPassTT(),
+			new HybridizeMixedTriggeredPass(), new FlattenAutomatonPass(), new OrderReductionPass(),
+			new ConvertLutFlowsPass(), };
 
 	private static final ModelGenerator[] generators = { new IntegralChainGenerator(),
 			new NavigationGenerator(), };
@@ -209,7 +211,6 @@ public class Hyst
 				ModelGenerator gen = generators[modelGenIndex];
 
 				config = gen.generate(modelGenParam);
-
 			}
 
 			// 5. run passes

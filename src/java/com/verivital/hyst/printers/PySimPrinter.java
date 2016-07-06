@@ -515,13 +515,20 @@ public class PySimPrinter extends ToolPrinter
 		}
 	}
 
-	private static class PySimExpressionPrinter extends DefaultExpressionPrinter
+	public static class PySimExpressionPrinter extends DefaultExpressionPrinter
 	{
 		BaseComponent ha;
-		String BASE = "state";
+		String BASE = null;
 
 		public PySimExpressionPrinter()
 		{
+			this("state");
+		}
+
+		public PySimExpressionPrinter(String base)
+		{
+			BASE = base;
+
 			this.opNames.put(Operator.EQUAL, "==");
 			this.opNames.put(Operator.AND, "and");
 			this.opNames.put(Operator.OR, "or");

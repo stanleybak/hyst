@@ -25,6 +25,7 @@ import com.verivital.hyst.ir.base.BaseComponent;
 import com.verivital.hyst.ir.base.ExpressionInterval;
 import com.verivital.hyst.main.Hyst;
 import com.verivital.hyst.passes.complex.ContinuizationPass;
+import com.verivital.hyst.passes.complex.ContinuizationPassTT;
 import com.verivital.hyst.python.PythonBridge;
 import com.verivital.hyst.util.AutomatonUtil;
 
@@ -152,12 +153,6 @@ public class ContinuizationPassTests
 		Assert.assertNotEquals("on_2 found", null, running2);
 		Assert.assertEquals("four error modes", numErrorModes, 4);
 
-		Assert.assertTrue("on invariant is correct",
-				running1.invariant.toDefaultString().contains("t <= 1.5"));
-
-		Assert.assertTrue("time-triggered invariant is correct",
-				running1.invariant.toDefaultString().contains("t <= 1.505"));
-
 		// bloated range of a in times 0-1.5 is K=[-6.98, 13.5]
 		// [-0.05, 0] * K = [-0.675, 0.349]
 		Assert.assertEquals("mode1 v_der.max is 0.163", 0.163,
@@ -278,5 +273,53 @@ public class ContinuizationPassTests
 
 		// this relies on hypy and scipy
 		new ContinuizationPass().runTransformationPass(c, continuizationParam);
+	}
+
+	@Test
+	public void testContinuizationPassTimeTriggered()
+	{
+		if (!PythonBridge.hasPython())
+			return;
+
+		String[][] dynamics = { { "x", "v", "0.05" }, { "v", "a", "0" }, { "a", "0", "9.5" },
+				{ "t", "1", "0" }, { "clock", "1", "0" } };
+		Configuration c = AutomatonUtil.makeDebugConfiguration(dynamics);
+		BaseComponent ha = (BaseComponent) c.root;
+		AutomatonMode am = ha.modes.values().iterator().next();
+
+		String PERIOD = "0.005";
+		am.invariant = FormulaParser.parseInvariant("t <= 5 && clock <= " + PERIOD);
+
+		AutomatonTransition at = ha.createTransition(am, am);
+		at.guard = FormulaParser.parseGuard("clock >= " + PERIOD);
+		at.reset.put("clock", new ExpressionInterval(0));
+		at.reset.put("a", new ExpressionInterval("10 - 10*x - 3*v"));
+
+		double TIME_STEP = 5.0;
+		double BLOAT = 4;
+		String params = ContinuizationPassTT.makeParamString(false, TIME_STEP, BLOAT);
+		// this relies on hypy and scipy
+		new ContinuizationPassTT().runTransformationPass(c, params);
+
+		// we should have three error modes, and one normal mode
+		int numErrorModes = 0;
+
+		for (AutomatonMode m : ha.modes.values())
+		{
+			if (am.name.contains("error"))
+				++numErrorModes;
+		}
+
+		Assert.assertNotEquals("three modes", 3, ha.modes.size());
+		Assert.assertEquals("two error modes", numErrorModes, 2);
+
+		// v' = 10 - 10*x - 3*v + [-36, 8] * [-0.05, 0]
+		Assert.assertEquals("v der expression part is correct", "10 - 10*x - 3*v",
+				am.flowDynamics.get("v").toDefaultString());
+
+		Assert.assertEquals("v_der.max is 1.63", 1.63, am.flowDynamics.get("v").getInterval().max,
+				1e-3);
+		Assert.assertEquals("v_der.min is -0.4", -0.46, am.flowDynamics.get("v").getInterval().min,
+				1e-3);
 	}
 }
