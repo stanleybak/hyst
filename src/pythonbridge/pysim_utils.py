@@ -127,7 +127,6 @@ def simulate_exp_range(ha, exp_func, mode_name, point, time_ranges, max_jumps=50
         for i in xrange(len(mode_sim.times)):
             time = mode_sim.times[i]
             pt = mode_sim.points[i]
-        
             exp_val = exp_func(pt)
 
             for r_index in xrange(len(ranges)):

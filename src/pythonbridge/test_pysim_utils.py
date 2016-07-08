@@ -34,7 +34,9 @@ class TestPySimUtils(unittest.TestCase):
         
         # get the range between times 0-2 and times 1-3
         # expression = 0.1 * y
-        # t' == 1, y' == 2t
+        # t' == 1, y' == 2
+        ha.modes['on'].der = lambda _, state: [1.0, 2.0]
+
         exp_func = lambda point: point[1] * 0.1
         res = util.simulate_exp_range(ha, exp_func, 'on', [0.0, 0.0], [(0, 2), (1, 3)])
 
@@ -45,7 +47,7 @@ class TestPySimUtils(unittest.TestCase):
 
         self.assertAlmostEqual(float(a), 0.0, places=3)
         self.assertAlmostEqual(float(b), 0.4, places=3)
-        self.assertAlmostEqual(float(c), 0.2, places=3) TODO: FIGURE OUT WHY THIS IS FAILING
+        self.assertAlmostEqual(float(c), 0.2, places=3)
         self.assertAlmostEqual(float(d), 0.6, places=3)
 
     def test_simulate_der_range(self):
