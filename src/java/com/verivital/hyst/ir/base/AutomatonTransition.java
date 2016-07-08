@@ -1,5 +1,6 @@
 package com.verivital.hyst.ir.base;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 
@@ -142,6 +143,48 @@ public class AutomatonTransition
 			if (e.getValue() == null)
 				throw new AutomatonValidationException("transition reset is null for variable "
 						+ e.getKey() + ": " + from.name + " -> " + to.name);
+		}
+
+		ArrayList<String> validVarNames = new ArrayList<String>();
+		validVarNames.addAll(parent.variables);
+		validVarNames.addAll(parent.constants.keySet());
+
+		checkOnlyUsesAllowedVariables(validVarNames);
+	}
+
+	/**
+	 * Validation check that the expressions in this transition only use
+	 * variables/constants defined in the automaton
+	 * 
+	 * @param validVarNames
+	 *            the list of variables / constants which are allowed
+	 */
+	private void checkOnlyUsesAllowedVariables(ArrayList<String> validVarNames)
+	{
+		for (String var : AutomatonUtil.getVariablesInExpression(guard))
+		{
+			if (!validVarNames.contains(var))
+				throw new AutomatonValidationException(
+						"Invariant in transition " + from.name + "->" + to.name + " used variable "
+								+ var + " which was not defined in component.");
+		}
+
+		for (Entry<String, ExpressionInterval> e : reset.entrySet())
+		{
+			if (!parent.variables.contains(e.getKey()))
+			{
+				throw new AutomatonValidationException(
+						"transition " + from.name + "->" + to.name + " resets variable "
+								+ e.getKey() + " which was not defined in component.");
+			}
+
+			for (String var : AutomatonUtil.getVariablesInExpression(e.getValue().getExpression()))
+			{
+				if (!validVarNames.contains(var))
+					throw new AutomatonValidationException("reset for " + var + " in transition "
+							+ from.name + "->" + to.name + " used variable " + var
+							+ " which was not defined in component.");
+			}
 		}
 	}
 

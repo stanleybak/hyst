@@ -274,6 +274,8 @@ public class ContinuizationPassTT extends TransformationPass
 				new Interval(0));
 
 		config.validate();
+
+		System.out.println(".continuizationpasstt: passed validation = " + config);
 	}
 
 	private Expression removeClockAndCyber(Expression e)
@@ -768,7 +770,6 @@ public class ContinuizationPassTT extends TransformationPass
 
 		PythonBridge pb = PythonBridge.getInstance();
 		pb.send("from pythonbridge.pysim_utils import simulate_exp_range");
-		// TODO: write simulate_exp_range
 
 		StringBuilder s = new StringBuilder();
 		s.append(PySimPrinter.automatonToString(automaton));

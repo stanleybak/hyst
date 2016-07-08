@@ -122,6 +122,44 @@ public class AutomatonMode
 							"Flow for " + entry.getKey() + " was null in mode " + name);
 			}
 		}
+
+		ArrayList<String> validVarNames = new ArrayList<String>();
+		validVarNames.addAll(automaton.variables);
+		validVarNames.addAll(automaton.constants.keySet());
+
+		checkOnlyUsesAllowedVariables(validVarNames);
+	}
+
+	/**
+	 * Validation check that the expressions in this mode only use
+	 * variables/constants defined in the automaton
+	 * 
+	 * @param validVarNames
+	 *            the list of variables / constants which are allowed
+	 */
+	private void checkOnlyUsesAllowedVariables(ArrayList<String> validVarNames)
+	{
+		for (String var : AutomatonUtil.getVariablesInExpression(invariant))
+		{
+			if (!validVarNames.contains(var))
+				throw new AutomatonValidationException("Invariant in mode " + name
+						+ " used variable " + var + " which was not defined in component");
+		}
+
+		if (flowDynamics != null)
+		{
+			for (Entry<String, ExpressionInterval> e : flowDynamics.entrySet())
+			{
+				for (String var : AutomatonUtil
+						.getVariablesInExpression(e.getValue().getExpression()))
+				{
+					if (!validVarNames.contains(var))
+						throw new AutomatonValidationException(
+								"Flow for " + var + " in mode " + name + " used variable " + var
+										+ " which was not defined in component");
+				}
+			}
+		}
 	}
 
 	@Override
