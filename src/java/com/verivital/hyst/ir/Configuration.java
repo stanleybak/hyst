@@ -141,7 +141,8 @@ public class Configuration
 					String bestGuess = getBestVariableGuess(var, validVarNames);
 
 					throw new AutomatonValidationException(name + " states use variable '" + var
-							+ "', which is not in the automaton. " + bestGuess);
+							+ "', which is not in the automaton: '" + e.getValue().toDefaultString()
+							+ "' " + bestGuess);
 				}
 			}
 		}

@@ -299,6 +299,8 @@ public class ContinuizationPassTests
 		double BLOAT = 4;
 		String params = ContinuizationPassTT.makeParamString(false, TIME_STEP, BLOAT);
 		// this relies on hypy and scipy
+
+		Hyst.verboseMode = true;
 		new ContinuizationPassTT().runTransformationPass(c, params);
 
 		// we should have three error modes, and one normal mode
@@ -306,20 +308,22 @@ public class ContinuizationPassTests
 
 		for (AutomatonMode m : ha.modes.values())
 		{
-			if (am.name.contains("error"))
+			if (m.name.contains("error"))
 				++numErrorModes;
 		}
 
-		Assert.assertNotEquals("three modes", 3, ha.modes.size());
-		Assert.assertEquals("two error modes", numErrorModes, 2);
+		Assert.assertEquals("three modes", 3, ha.modes.size());
+		Assert.assertEquals("two error modes", 2, numErrorModes);
 
 		// v' = 10 - 10*x - 3*v + [-36, 8] * [-0.05, 0]
-		Assert.assertEquals("v der expression part is correct", "10 - 10*x - 3*v",
-				am.flowDynamics.get("v").toDefaultString());
+		ExpressionInterval vDer = am.flowDynamics.get("v");
+		Assert.assertEquals("v der expression part is correct", "10 - 10 * x - 3 * v",
+				vDer.getExpression().toDefaultString());
 
-		Assert.assertEquals("v_der.max is 1.63", 1.63, am.flowDynamics.get("v").getInterval().max,
-				1e-3);
-		Assert.assertEquals("v_der.min is -0.4", -0.46, am.flowDynamics.get("v").getInterval().min,
-				1e-3);
+		Interval i = vDer.getInterval();
+		Assert.assertNotNull("v-der does not have interval", i);
+
+		Assert.assertEquals("v_der-interval.max is 1.63", 1.63, i.max, 1e-3);
+		Assert.assertEquals("v_der-interval.min is -0.4", -0.46, i.min, 1e-3);
 	}
 }

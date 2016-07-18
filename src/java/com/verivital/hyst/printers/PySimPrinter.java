@@ -517,8 +517,8 @@ public class PySimPrinter extends ToolPrinter
 
 	public static class PySimExpressionPrinter extends DefaultExpressionPrinter
 	{
-		BaseComponent ha;
-		String BASE = null;
+		public BaseComponent ha = null;
+		private String BASE = null;
 
 		public PySimExpressionPrinter()
 		{

@@ -15,22 +15,24 @@ import com.verivital.hyst.grammar.formula.Expression;
 import com.verivital.hyst.grammar.formula.Operation;
 import com.verivital.hyst.grammar.formula.Operator;
 import com.verivital.hyst.grammar.formula.Variable;
-import com.verivital.hyst.internalpasses.ConvertFromStandardForm;
+import com.verivital.hyst.internalpasses.DeleteParams;
 import com.verivital.hyst.ir.AutomatonExportException;
 import com.verivital.hyst.ir.Configuration;
 import com.verivital.hyst.ir.base.AutomatonMode;
 import com.verivital.hyst.ir.base.AutomatonTransition;
 import com.verivital.hyst.ir.base.BaseComponent;
 import com.verivital.hyst.ir.base.ExpressionInterval;
+import com.verivital.hyst.ir.base.ExpressionModifier;
 import com.verivital.hyst.main.Hyst;
 import com.verivital.hyst.passes.TransformationPass;
-import com.verivital.hyst.passes.basic.SimplifyExpressionsPass;
+import com.verivital.hyst.passes.complex.ContinuizationPass.IntervalTerm;
 import com.verivital.hyst.printers.PySimPrinter;
 import com.verivital.hyst.printers.PySimPrinter.PySimExpressionPrinter;
 import com.verivital.hyst.python.PythonBridge;
 import com.verivital.hyst.util.AutomatonUtil;
 import com.verivital.hyst.util.Preconditions.PreconditionsFailedException;
 import com.verivital.hyst.util.StringOperations;
+import com.verivital.hyst.util.ValueSubstituter;
 
 /**
  * This is the enhanced version of the continuization pass that uses
@@ -255,62 +257,67 @@ public class ContinuizationPassTT extends TransformationPass
 	 */
 	private void makeContinuizedApprox()
 	{
-		ha.variables.remove(clockVar);
-		ha.variables.remove(cyberVar);
 		ha.transitions.clear();
-
-		am.flowDynamics.remove(clockVar);
-		am.flowDynamics.remove(cyberVar);
-
-		for (Entry<String, Expression> e : config.init.entrySet())
-			e.setValue(removeClockAndCyber(e.getValue()));
 
 		// store original dynamics
 		for (Entry<String, ExpressionInterval> e : am.flowDynamics.entrySet())
-			originalDynamics.put(e.getKey(), e.getValue().copy());
+		{
+			if (!e.getKey().equals(cyberVar))
+				originalDynamics.put(e.getKey(), e.getValue().copy());
+		}
 
 		// substitute every occurrence of cyberVar with cyberExpression
-		substituteVariableInDerivative(new ExpressionInterval(cyberExpression), cyberVar,
-				new Interval(0));
+		createModifiedDynamicsInMode(am, null);
+
+		DeleteParams.run(config, clockVar, cyberVar);
 
 		config.validate();
-
-		System.out.println(".continuizationpasstt: passed validation = " + config);
 	}
 
-	private Expression removeClockAndCyber(Expression e)
+	/**
+	 * Modify the dynamics to be originalDynamics but cyberVar replaced by
+	 * cyberExpression + omega
+	 * 
+	 * @param omaga
+	 *            the interval in the substitution (can be null)
+	 */
+	private void createModifiedDynamicsInMode(AutomatonMode mode, Interval omega)
 	{
-		Expression rv = e;
+		HashMap<String, Expression> subs = new HashMap<String, Expression>();
 
-		if (e instanceof Operation)
+		if (omega == null)
+			subs.put(cyberVar, cyberExpression);
+		else
+			subs.put(cyberVar,
+					new Operation(Operator.ADD, cyberExpression, new IntervalTerm(omega)));
+
+		final ValueSubstituter vs = new ValueSubstituter(subs);
+
+		// copy from originalDynamics
+		mode.flowDynamics.clear();
+
+		for (Entry<String, ExpressionInterval> e : originalDynamics.entrySet())
+			mode.flowDynamics.put(e.getKey(), e.getValue().copy());
+
+		ExpressionModifier.modifyBaseComponent(ha, new ExpressionModifier()
 		{
-			Operation o = e.asOperation();
-			Operation newO = new Operation(o.op);
-
-			for (Expression child : e.asOperation().children)
+			@Override
+			public Expression modifyExpression(Expression e)
 			{
-				Expression newChild = removeClockAndCyber(child);
-
-				if (newChild != null)
-					newO.children.add(newChild);
+				return vs.substitute(e);
 			}
+		});
 
-			if (o.op == Operator.AND && newO.children.size() == 1)
-				rv = newO.children.get(0);
-			else if (Operator.isComparison(o.op) && newO.children.size() == 1)
-				rv = null; // comparison with removed variable
-			else
-				rv = newO;
-		}
-		else if (e instanceof Variable)
+		// substitute out the IntervalTerms
+
+		for (Entry<String, ExpressionInterval> e : mode.flowDynamics.entrySet())
 		{
-			Variable v = (Variable) e;
+			ExpressionInterval ei = ContinuizationPass
+					.simplifyExpressionWithIntervals(e.getValue().asExpression());
 
-			if (v.name.equals(cyberVar) || v.name.equals(clockVar))
-				rv = null;
+			if (ei.getInterval() != null)
+				e.setValue(ei);
 		}
-
-		return rv;
 	}
 
 	@Override
@@ -326,23 +333,33 @@ public class ContinuizationPassTT extends TransformationPass
 		// estimate ranges based on simulation, stored in domains.ranges
 		estimateRanges();
 
+		readdClockVar();
+
 		createModesWithTimeConditions();
-		// (single mode only)
 
-		// substitute every occurrence of c_i with c_i + \omega_i
-		substituteCyberVariables();
-
-		ConvertFromStandardForm.run(config);
+		// substitute every with cyberExp + \omega_i
+		substituteOriginalCyberVariables();
 
 		// add the range conditions to each of the modes
 		if (skipErrorModes == false)
 			addRangeConditionsToModes(ha);
 	}
 
+	private void readdClockVar()
+	{
+		// re-add clockVar
+		ha.variables.add(clockVar);
+		am.flowDynamics.put(clockVar, new ExpressionInterval(new Constant(1)));
+
+		for (Entry<String, Expression> e : config.init.entrySet())
+			e.setValue(Expression.and(e.getValue(), new Operation(clockVar, Operator.EQUAL, 0)));
+	}
+
 	/**
-	 * substitute every occurrence of c_i with c_i + \omega_i
+	 * substitute every occurrence of cyberVar with cyberVarExpression +
+	 * \omega_i
 	 */
-	private void substituteCyberVariables()
+	private void substituteOriginalCyberVariables()
 	{
 		for (DomainValues dv : domains)
 		{
@@ -351,241 +368,11 @@ public class ContinuizationPassTT extends TransformationPass
 			Interval K = dv.range;
 			Interval omega = Interval.mult(K, new Interval(-period, 0));
 
-			substituteCyberVariableInMode(am, cyberVar, omega);
+			createModifiedDynamicsInMode(am, omega);
+
+			Hyst.log("Created dynamcis in mode '" + dv.mode.name + "': "
+					+ am.flowDynamics.toString());
 		}
-	}
-
-	/**
-	 * substitute every occurrence of c_i with c_i + \omega_i
-	 * 
-	 * @param am
-	 *            the mode where to do the substitution
-	 * @param cyberVar
-	 *            the variable name to substitute
-	 * @param omega
-	 *            the omega interval to add
-	 * @param range
-	 *            the ranges encountered for the variables, used when intervals
-	 *            are multiplied by variables
-	 */
-	private void substituteCyberVariableInMode(AutomatonMode am, String cyberVar, Interval omega)
-	{
-		// substitute in each flow
-		for (Entry<String, ExpressionInterval> e : am.flowDynamics.entrySet())
-		{
-			ExpressionInterval newEi = substituteVariableInDerivative(e.getValue(), cyberVar,
-					omega);
-			e.setValue(newEi);
-		}
-	}
-
-	/**
-	 * Substitute each cyber variable c_i with c_i + \omega
-	 * 
-	 * @param ei
-	 *            the expression interval we're substituting inside
-	 * @param cyberVar
-	 *            the variable c_i
-	 * @param omega
-	 *            the omega value
-	 * @return the resultant expression interval
-	 */
-	public static ExpressionInterval substituteVariableInDerivative(ExpressionInterval ei,
-			String cyberVar, Interval omega)
-	{
-		Operation subValue = new Operation(Operator.ADD, new Variable(cyberVar),
-				new IntervalTerm(omega));
-
-		Expression e = AutomatonUtil.substituteVariable(ei.getExpression(), cyberVar, subValue);
-
-		ExpressionInterval simplifiedEi = simplifyExpressionWithIntervals(e);
-
-		Interval i = ei.getInterval();
-
-		if (i != null)
-		{
-			Interval j = simplifiedEi.getInterval();
-
-			if (j == null)
-				simplifiedEi.setInterval(i);
-			else
-				simplifiedEi.setInterval(Interval.add(i, j));
-		}
-
-		return simplifiedEi;
-	}
-
-	/**
-	 * Simplify an expression which may contain IntervalTerms to an
-	 * ExpressionInterval.
-	 * 
-	 * Possible added functionality is to substitute ranges for nonlinear
-	 * multiplication.
-	 * 
-	 * @param e
-	 *            the expression which may contain IntervalTerms
-	 * @return an ExpressionInterval representation
-	 */
-	public static ExpressionInterval simplifyExpressionWithIntervals(Expression e)
-	{
-		ExpressionInterval rv = simplifyExpressionWithIntervalsRec(e);
-
-		if (rv == null)
-			throw new AutomatonExportException(
-					"Expression simplification resulted in null: " + e.toDefaultString());
-
-		// simplify expression to get rid of 0's
-		rv.setExpression(SimplifyExpressionsPass.simplifyExpression(rv.getExpression()));
-
-		return rv;
-	}
-
-	public static ExpressionInterval simplifyExpressionWithIntervalsRec(Expression e)
-	{
-		ExpressionInterval rv = null;
-
-		if (e instanceof IntervalTerm)
-		{
-			IntervalTerm it = (IntervalTerm) e;
-			rv = new ExpressionInterval(new Constant(0), it.i);
-		}
-		else if (e instanceof Operation)
-		{
-			Operation o = e.asOperation();
-
-			switch (o.op)
-			{
-			case NEGATIVE:
-			{
-				ExpressionInterval childRv = simplifyExpressionWithIntervalsRec(o.children.get(0));
-				Expression childE = childRv.getExpression();
-				Interval childI = childRv.getInterval();
-
-				if (childI != null)
-					childI = Interval.mult(childI, -1);
-
-				childE = new Operation(Operator.NEGATIVE, childE);
-
-				rv = new ExpressionInterval(childE, childI);
-				break;
-			}
-			case ADD:
-			{
-				Interval sum = new Interval(0);
-				Operation accumulatorE = new Operation(o.op);
-
-				for (int i = 0; i < o.children.size(); ++i)
-				{
-					ExpressionInterval childRv = simplifyExpressionWithIntervalsRec(
-							o.children.get(i));
-					accumulatorE.children.add(childRv.getExpression());
-
-					if (childRv.getInterval() != null)
-						sum = Interval.add(sum, childRv.getInterval());
-				}
-
-				rv = new ExpressionInterval(accumulatorE, sum);
-				break;
-			}
-			case SUBTRACT:
-			{
-				Interval sum = new Interval(0);
-				Operation accumulatorE = new Operation(o.op);
-
-				// first child
-				ExpressionInterval childRv1 = simplifyExpressionWithIntervalsRec(o.children.get(0));
-				accumulatorE.children.add(childRv1.getExpression());
-
-				if (childRv1.getInterval() != null)
-					sum = childRv1.getInterval();
-
-				// second child
-				ExpressionInterval childRv2 = simplifyExpressionWithIntervalsRec(o.children.get(1));
-				accumulatorE.children.add(childRv2.getExpression());
-
-				if (childRv2.getInterval() != null)
-					sum = Interval.add(sum, Interval.mult(childRv2.getInterval(), -1));
-
-				rv = new ExpressionInterval(accumulatorE, sum);
-				break;
-			}
-			case MULTIPLY:
-			{
-				Operation accumulatorE = new Operation(o.op);
-				Interval interval = null;
-				double expressionProduct = 1; // every non-interval will get
-												// multiplied by this
-				Double NOT_ALL_CONSTANTS = Double.NaN; // flag used for when op
-														// is mult but
-														// non-intervals are not
-														// constants
-
-				for (int i = 0; i < o.children.size(); ++i)
-				{
-					ExpressionInterval childRv = simplifyExpressionWithIntervalsRec(
-							o.children.get(i));
-					Expression childE = childRv.getExpression();
-					accumulatorE.children.add(childRv.getExpression());
-
-					if (childRv.getInterval() != null)
-					{
-						o.children.set(i, childE);
-
-						if (interval == null)
-							interval = childRv.getInterval();
-						else
-							throw new AutomatonExportException(
-									"Couldn't extract interval from substituted expression "
-											+ "(multiple intervals in multiplication): " + e);
-					}
-					else
-					{
-						if (expressionProduct != NOT_ALL_CONSTANTS && childE instanceof Constant)
-							expressionProduct *= ((Constant) childE).getVal();
-						else
-							expressionProduct = NOT_ALL_CONSTANTS;
-					}
-				}
-
-				if (interval != null)
-				{
-					if (expressionProduct == NOT_ALL_CONSTANTS)
-						throw new AutomatonExportException(
-								"Couldn't extract interval from substituted expression "
-										+ "(non-constant multiplied by interval): " + e);
-					else
-						interval = Interval.mult(interval, expressionProduct);
-				}
-
-				rv = new ExpressionInterval(accumulatorE, interval);
-				break;
-			}
-			default:
-			{
-				// unsupported, make sure no kids have intervals
-				for (int i = 0; i < o.children.size(); ++i)
-				{
-					ExpressionInterval childRv = simplifyExpressionWithIntervalsRec(
-							o.children.get(i));
-
-					if (childRv.getInterval() != null)
-						throw new AutomatonExportException(
-								"Couldn't extract interval from substituted expression "
-										+ "(unsupported operation '" + o.op.name() + "'): " + e);
-				}
-
-				rv = new ExpressionInterval(e);
-				break;
-			}
-			}
-		}
-		else
-			rv = new ExpressionInterval(e);
-
-		if (rv != null && rv.getInterval() != null && rv.getInterval().isExactly(0))
-			rv.setInterval(null);
-
-		return rv;
 	}
 
 	private void addRangeConditionsToModes(BaseComponent ha)
@@ -761,6 +548,7 @@ public class ContinuizationPassTT extends TransformationPass
 			SymbolicStatePoint start, List<Interval> timeIntervals, Expression expToEavl)
 	{
 		PySimExpressionPrinter pyPrinter = new PySimExpressionPrinter();
+		pyPrinter.ha = (BaseComponent) automaton.root;
 
 		int numVars = automaton.root.variables.size();
 
@@ -817,35 +605,5 @@ public class ContinuizationPassTT extends TransformationPass
 		}
 
 		return rv;
-	}
-
-	/**
-	 * An interval as part of the expression. This can be temporarily part of an
-	 * expression when, for example, we substitute 'c' to 'c + [-1, 1]' in an
-	 * expression. For example '5 * c + 2' -> '5 * (c + [-1, 1]) + 2'
-	 * 
-	 * Eventually this would get simplified to Expression('5 * c + 2') +
-	 * Interval(-5, 5)
-	 */
-	public static class IntervalTerm extends Expression
-	{
-		Interval i;
-
-		public IntervalTerm(Interval i)
-		{
-			this.i = new Interval(i);
-		}
-
-		@Override
-		public Expression copy()
-		{
-			return new IntervalTerm(i);
-		}
-
-		@Override
-		public String toString()
-		{
-			return "[" + i.min + ", " + i.max + "]";
-		}
 	}
 }

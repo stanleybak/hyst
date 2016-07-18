@@ -4,6 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 
 import com.verivital.hyst.grammar.formula.Expression;
+import com.verivital.hyst.ir.AutomatonExportException;
 import com.verivital.hyst.ir.Configuration;
 
 public abstract class ExpressionModifier
@@ -18,8 +19,18 @@ public abstract class ExpressionModifier
 		for (Entry<String, ExpressionInterval> e : m.entrySet())
 		{
 			ExpressionInterval ei = e.getValue();
-			rv.put(e.getKey(), new ExpressionInterval(em.modifyExpression(ei.getExpression()),
-					ei.getInterval()));
+			String originalExp = ei.toDefaultString();
+
+			try
+			{
+				rv.put(e.getKey(), new ExpressionInterval(em.modifyExpression(ei.getExpression()),
+						ei.getInterval()));
+			}
+			catch (AutomatonExportException ex)
+			{
+				throw new AutomatonExportException(
+						"Error modifying flow " + e.getKey() + "' == " + originalExp, ex);
+			}
 		}
 
 		return rv;
@@ -41,6 +52,7 @@ public abstract class ExpressionModifier
 		for (Entry<String, Expression> e : c.init.entrySet())
 		{
 			Expression exp = e.getValue();
+
 			newInit.put(e.getKey(), em.modifyExpression(exp));
 		}
 
