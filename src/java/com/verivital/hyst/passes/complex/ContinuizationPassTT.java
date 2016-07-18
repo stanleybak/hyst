@@ -427,7 +427,7 @@ public class ContinuizationPassTT extends TransformationPass
 			Operation minTimeCond = new Operation(Operator.GREATEREQUAL, new Variable(timeVar),
 					new Constant(minTime));
 			Operation maxTimeCond = new Operation(Operator.LESSEQUAL, new Variable(timeVar),
-					new Constant(maxTime - period));
+					new Constant(maxTime));
 
 			Operation timeCond = new Operation(Operator.AND, minTimeCond, maxTimeCond);
 
@@ -441,7 +441,7 @@ public class ContinuizationPassTT extends TransformationPass
 
 				AutomatonTransition at = ha.createTransition(am, nextAm);
 				at.guard = new Operation(Operator.GREATEREQUAL, new Variable(timeVar),
-						new Constant(maxTime - period));
+						new Constant(maxTime));
 			}
 		}
 	}

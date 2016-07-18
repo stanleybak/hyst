@@ -425,10 +425,10 @@ public class ContinuizationPassTests
 
 		Assert.assertNull("There shouldn't be any reset to t on transition", at.reset.get("t"));
 
-		Assert.assertTrue("Transition time should be 2.495",
-				at.guard.toDefaultString().contains("t >= 2.495"));
+		Assert.assertTrue("Transition time should be 2.5",
+				at.guard.toDefaultString().contains("t >= 2.5"));
 
-		Assert.assertTrue("invariant should have t <= 2.495",
-				am.invariant.toDefaultString().contains("t <= 2.495"));
+		Assert.assertTrue("invariant should have t <= 2.5",
+				am.invariant.toDefaultString().contains("t <= 2.5"));
 	}
 }
