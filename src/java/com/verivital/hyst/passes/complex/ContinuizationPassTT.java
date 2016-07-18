@@ -77,9 +77,9 @@ public class ContinuizationPassTT extends TransformationPass
 	AutomatonMode am = null;
 
 	String timeVar = null;
+	String clockVar = null;
 	String cyberVar = null;
 	Expression cyberExpression = null;
-	String clockVar = null;
 	double period = 0;
 	HashMap<String, ExpressionInterval> originalDynamics = new HashMap<String, ExpressionInterval>();
 
@@ -126,7 +126,7 @@ public class ContinuizationPassTT extends TransformationPass
 		if (cyberVar == null)
 			throw new AutomatonExportException("Couldn't find cyber variable assignment in reset.");
 
-		if (checkClockVariableInInvariant(am.invariant) == false)
+		if (checkClockVariableInInvariant(am.invariant, clockVar) == false)
 			throw new AutomatonExportException("Couldn't find clock condition in invariant: "
 					+ am.invariant.toDefaultString());
 
@@ -135,7 +135,7 @@ public class ContinuizationPassTT extends TransformationPass
 		{
 			ExpressionInterval val = e.getValue();
 
-			if (!e.getKey().equals(cyberVar) && !!e.getKey().equals(clockVar)
+			if (!e.getKey().equals(cyberVar) && !e.getKey().equals(clockVar)
 					&& val.getInterval() == null && val.getExpression() instanceof Constant
 					&& ((Constant) val.asExpression()).getVal() == 1)
 			{
@@ -172,7 +172,7 @@ public class ContinuizationPassTT extends TransformationPass
 	 *            the invariant expression
 	 * @return true iff the clock condition exists in the invariant
 	 */
-	private boolean checkClockVariableInInvariant(Expression inv)
+	private boolean checkClockVariableInInvariant(Expression inv, String clockVar)
 	{
 		boolean found = false;
 
@@ -183,7 +183,7 @@ public class ContinuizationPassTT extends TransformationPass
 			if (o.op.equals(Operator.AND))
 			{
 				for (Expression child : o.children)
-					found = found || checkClockVariableInInvariant(child);
+					found = found || checkClockVariableInInvariant(child, clockVar);
 			}
 			else if (o.op.equals(Operator.LESSEQUAL) && o.getLeft() instanceof Variable
 					&& ((Variable) o.getLeft()).name.equals(clockVar))
@@ -263,7 +263,7 @@ public class ContinuizationPassTT extends TransformationPass
 		// store original dynamics
 		for (Entry<String, ExpressionInterval> e : am.flowDynamics.entrySet())
 		{
-			if (!e.getKey().equals(cyberVar))
+			if (!e.getKey().equals(cyberVar) && !e.getKey().equals(clockVar))
 				originalDynamics.put(e.getKey(), e.getValue().copy());
 		}
 
@@ -334,8 +334,6 @@ public class ContinuizationPassTT extends TransformationPass
 		// estimate ranges based on simulation, stored in domains.ranges
 		estimateRanges();
 
-		readdClockVar();
-
 		createModesWithTimeConditions();
 
 		// substitute every with cyberExp + \omega_i
@@ -344,16 +342,9 @@ public class ContinuizationPassTT extends TransformationPass
 		// add the range conditions to each of the modes
 		if (skipErrorModes == false)
 			addRangeConditionsToModes(ha);
-	}
 
-	private void readdClockVar()
-	{
-		// re-add clockVar
-		ha.variables.add(clockVar);
-		am.flowDynamics.put(clockVar, new ExpressionInterval(new Constant(1)));
-
-		for (Entry<String, Expression> e : config.init.entrySet())
-			e.setValue(Expression.and(e.getValue(), new Operation(clockVar, Operator.EQUAL, 0)));
+		// enable time-triggered transitions
+		config.settings.spaceExConfig.timeTriggered = true;
 	}
 
 	/**
@@ -436,7 +427,7 @@ public class ContinuizationPassTT extends TransformationPass
 			Operation minTimeCond = new Operation(Operator.GREATEREQUAL, new Variable(timeVar),
 					new Constant(minTime));
 			Operation maxTimeCond = new Operation(Operator.LESSEQUAL, new Variable(timeVar),
-					new Constant(maxTime + period));
+					new Constant(maxTime - period));
 
 			Operation timeCond = new Operation(Operator.AND, minTimeCond, maxTimeCond);
 
@@ -450,7 +441,7 @@ public class ContinuizationPassTT extends TransformationPass
 
 				AutomatonTransition at = ha.createTransition(am, nextAm);
 				at.guard = new Operation(Operator.GREATEREQUAL, new Variable(timeVar),
-						new Constant(maxTime));
+						new Constant(maxTime - period));
 			}
 		}
 	}

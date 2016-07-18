@@ -345,10 +345,10 @@ public class ContinuizationPassTests
 		double PERIOD = 0.005;
 		am.invariant = FormulaParser.parseInvariant("t <= 5 && clock <= " + PERIOD);
 
-		AutomatonTransition at = ha.createTransition(am, am);
-		at.guard = FormulaParser.parseGuard("clock >= " + PERIOD);
-		at.reset.put("clock", new ExpressionInterval(0));
-		at.reset.put("a", new ExpressionInterval("10 - 10*x - 3*v"));
+		AutomatonTransition trans = ha.createTransition(am, am);
+		trans.guard = FormulaParser.parseGuard("clock >= " + PERIOD);
+		trans.reset.put("clock", new ExpressionInterval(0));
+		trans.reset.put("a", new ExpressionInterval("10 - 10*x - 3*v"));
 
 		double TIME_STEP = 2.5;
 		double BLOAT = 4;
@@ -407,5 +407,28 @@ public class ContinuizationPassTests
 			Assert.assertEquals("v_der-interval.min was wrong in mode " + m.name, expectedI.min,
 					in.min, 1e-3);
 		}
+
+		AutomatonTransition at = null;
+
+		for (AutomatonTransition t : ha.transitions)
+		{
+			if (t.from == am && t.to == am2)
+			{
+				at = t;
+				break;
+			}
+		}
+
+		Assert.assertNotNull("transition 'on' -> 'on_2' not found", at);
+
+		Assert.assertFalse("Clock should not be a variable", ha.variables.contains("clock"));
+
+		Assert.assertNull("There shouldn't be any reset to t on transition", at.reset.get("t"));
+
+		Assert.assertTrue("Transition time should be 2.495",
+				at.guard.toDefaultString().contains("t >= 2.495"));
+
+		Assert.assertTrue("invariant should have t <= 2.495",
+				am.invariant.toDefaultString().contains("t <= 2.495"));
 	}
 }
