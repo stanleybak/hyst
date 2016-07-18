@@ -150,7 +150,7 @@ public class ContinuizationPassTT extends TransformationPass
 		double lastTime = 0;
 		double TOL = 1e-9;
 
-		for (double t = timeStep; t
+		for (double t = timeStep; lastTime + period
 				+ TOL < config.settings.spaceExConfig.timeHorizon; t += timeStep)
 		{
 			DomainValues dv = new DomainValues();
@@ -158,6 +158,7 @@ public class ContinuizationPassTT extends TransformationPass
 
 			dv.startTime = lastTime;
 			dv.endTime = t;
+
 			lastTime = Math.max(0, t - period);
 
 			dv.bloat = bloat;
@@ -368,10 +369,12 @@ public class ContinuizationPassTT extends TransformationPass
 			Interval K = dv.range;
 			Interval omega = Interval.mult(K, new Interval(-period, 0));
 
+			Hyst.log("bloated sim range in time [" + dv.startTime + ", " + dv.endTime + "] was " + K
+					+ ", omega was " + omega);
+
 			createModifiedDynamicsInMode(am, omega);
 
-			Hyst.log("Created dynamcis in mode '" + dv.mode.name + "': "
-					+ am.flowDynamics.toString());
+			Hyst.log("Created dynamcis: " + am);
 		}
 	}
 

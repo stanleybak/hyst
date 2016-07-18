@@ -15,6 +15,8 @@ import com.verivital.hyst.generators.IntegralChainGenerator;
 import com.verivital.hyst.generators.NavigationGenerator;
 import com.verivital.hyst.grammar.formula.Expression;
 import com.verivital.hyst.ir.Configuration;
+import com.verivital.hyst.ir.base.AutomatonMode;
+import com.verivital.hyst.ir.base.BaseComponent;
 import com.verivital.hyst.printers.FlowstarPrinter;
 import com.verivital.hyst.printers.ToolPrinter;
 import com.verivital.hyst.python.PythonBridge;
@@ -53,6 +55,16 @@ public class GeneratorTests
 		Configuration c = gen.generate("-M 6 -N 1 -U 1");
 
 		Assert.assertEquals("six variables", 6, c.root.variables.size());
+
+		BaseComponent ha = (BaseComponent) c.root;
+		AutomatonMode am = ha.modes.values().iterator().next();
+
+		Assert.assertEquals("x_0 flow is incorrect", "x_0_der1",
+				am.flowDynamics.get("x_0").toDefaultString());
+		Assert.assertEquals("x_0_der1 flow is incorrect", "x_0_der2",
+				am.flowDynamics.get("x_0_der1").toDefaultString());
+		Assert.assertEquals("x_0_der5 flow is incorrect", "1",
+				am.flowDynamics.get("x_0_der5").toDefaultString());
 
 		ToolPrinter printer = new FlowstarPrinter();
 		printer.setOutputString();

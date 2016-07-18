@@ -606,7 +606,8 @@ public class LutMatrixTest
 
 		String lutStr = "lut([(input-x)*5,(input-x-v)], " + "[-2.0000, -1.9000; "
 				+ "-1.9000, -1.8000]" + ", [-1.0000, -0.0800]" + ", [-1.0000, -0.0800])";
-		String[][] dynamics = { { "t", "1", "0" }, { "x", "v", "0" }, { "v", lutStr, "0" } };
+		String[][] dynamics = { { "t", "1", "0" }, { "x", "v", "0" }, { "v", lutStr, "0" },
+				{ "input", "1", "0" } };
 		Configuration c = AutomatonUtil.makeDebugConfiguration(dynamics);
 		BaseComponent ha = (BaseComponent) c.root;
 

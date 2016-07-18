@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 
 import com.verivital.hyst.geometry.Interval;
 import com.verivital.hyst.grammar.formula.Expression;
+import com.verivital.hyst.grammar.formula.LutExpression;
 import com.verivital.hyst.grammar.formula.Operation;
 import com.verivital.hyst.grammar.formula.Variable;
 import com.verivital.hyst.ir.Component;
@@ -306,6 +307,18 @@ public class RenameParams
 
 				for (int i = 0; i < o.children.size(); ++i)
 					o.children.set(i, modifyExpression(o.children.get(i)));
+			}
+			else if (e instanceof LutExpression)
+			{
+				LutExpression lut = (LutExpression) e;
+
+				// modify input expressions
+				for (int i = 0; i < lut.inputs.length; ++i)
+					lut.inputs[i] = modifyExpression(lut.inputs[i]);
+
+				// modify table data expressions
+				for (Entry<int[], Expression> it : lut.table)
+					lut.table.setExpressionAtIndex(it.getKey(), modifyExpression(it.getValue()));
 			}
 
 			return rv;

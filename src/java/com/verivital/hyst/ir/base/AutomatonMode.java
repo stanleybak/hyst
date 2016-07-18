@@ -155,8 +155,8 @@ public class AutomatonMode
 				{
 					if (!validVarNames.contains(var))
 						throw new AutomatonValidationException(
-								"Flow for " + var + " in mode " + name + " used variable " + var
-										+ " which was not defined in component");
+								"Flow for '" + var + "' in mode '" + name + "' used variable '"
+										+ var + "' which was not defined in component");
 				}
 			}
 		}

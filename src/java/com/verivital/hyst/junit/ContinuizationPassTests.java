@@ -23,7 +23,6 @@ import com.verivital.hyst.ir.base.AutomatonMode;
 import com.verivital.hyst.ir.base.AutomatonTransition;
 import com.verivital.hyst.ir.base.BaseComponent;
 import com.verivital.hyst.ir.base.ExpressionInterval;
-import com.verivital.hyst.main.Hyst;
 import com.verivital.hyst.passes.complex.ContinuizationPass;
 import com.verivital.hyst.passes.complex.ContinuizationPassTT;
 import com.verivital.hyst.python.PythonBridge;
@@ -269,8 +268,6 @@ public class ContinuizationPassTests
 		String continuizationParam = ContinuizationPass.makeParamString("a", null, 0.005, false,
 				Arrays.asList(new Double[] { 5.0 }), Arrays.asList(new Double[] { 4.0 }));
 
-		Hyst.verboseMode = true;
-
 		// this relies on hypy and scipy
 		new ContinuizationPass().runTransformationPass(c, continuizationParam);
 	}
@@ -287,7 +284,8 @@ public class ContinuizationPassTests
 		BaseComponent ha = (BaseComponent) c.root;
 		AutomatonMode am = ha.modes.values().iterator().next();
 
-		String PERIOD = "0.005";
+		double PERIOD = 0.005;
+		c.settings.spaceExConfig.timeHorizon = 5;
 		am.invariant = FormulaParser.parseInvariant("t <= 5 && clock <= " + PERIOD);
 
 		AutomatonTransition at = ha.createTransition(am, am);
@@ -300,7 +298,6 @@ public class ContinuizationPassTests
 		String params = ContinuizationPassTT.makeParamString(false, TIME_STEP, BLOAT);
 		// this relies on hypy and scipy
 
-		Hyst.verboseMode = true;
 		new ContinuizationPassTT().runTransformationPass(c, params);
 
 		// we should have three error modes, and one normal mode
@@ -323,7 +320,92 @@ public class ContinuizationPassTests
 		Interval i = vDer.getInterval();
 		Assert.assertNotNull("v-der does not have interval", i);
 
-		Assert.assertEquals("v_der-interval.max is 1.63", 1.63, i.max, 1e-3);
-		Assert.assertEquals("v_der-interval.min is -0.4", -0.46, i.min, 1e-3);
+		Interval aRange = new Interval(-2.989, 9.472); // from matlab simulation
+		aRange.min -= BLOAT;
+		aRange.max += BLOAT;
+		Interval expectedI = Interval.mult(aRange, new Interval(-PERIOD, 0));
+
+		Assert.assertEquals("v_der-interval.max was wrong", expectedI.max, i.max, 1e-3);
+		Assert.assertEquals("v_der-interval.min was wrong", expectedI.min, i.min, 1e-3);
+	}
+
+	@Test
+	public void testContinuizationPassTimeTriggeredMultiInterval()
+	{
+		if (!PythonBridge.hasPython())
+			return;
+
+		String[][] dynamics = { { "x", "v", "0.05" }, { "v", "a", "0" }, { "a", "0", "9.5" },
+				{ "t", "1", "0" }, { "clock", "1", "0" } };
+		Configuration c = AutomatonUtil.makeDebugConfiguration(dynamics);
+		c.settings.spaceExConfig.timeHorizon = 5;
+		BaseComponent ha = (BaseComponent) c.root;
+		AutomatonMode am = ha.modes.values().iterator().next();
+
+		double PERIOD = 0.005;
+		am.invariant = FormulaParser.parseInvariant("t <= 5 && clock <= " + PERIOD);
+
+		AutomatonTransition at = ha.createTransition(am, am);
+		at.guard = FormulaParser.parseGuard("clock >= " + PERIOD);
+		at.reset.put("clock", new ExpressionInterval(0));
+		at.reset.put("a", new ExpressionInterval("10 - 10*x - 3*v"));
+
+		double TIME_STEP = 2.5;
+		double BLOAT = 4;
+		String params = ContinuizationPassTT.makeParamString(false, TIME_STEP, BLOAT);
+		// this relies on hypy and scipy
+
+		new ContinuizationPassTT().runTransformationPass(c, params);
+
+		// we should have three error modes, and one normal mode
+		int numErrorModes = 0;
+		AutomatonMode am2 = null;
+
+		for (AutomatonMode m : ha.modes.values())
+		{
+			if (m.name.contains("error"))
+				++numErrorModes;
+
+			if (m.name.equals("on"))
+				am = m;
+
+			if (m.name.equals("on_2"))
+				am2 = m;
+		}
+
+		Assert.assertNotNull("mode 'on' not found", am);
+		Assert.assertNotNull("mode 'on2' not found", am2);
+
+		Assert.assertEquals("size modes", 6, ha.modes.size());
+		Assert.assertEquals("four error modes", 4, numErrorModes);
+
+		// from matlab simulation:
+		// first part a_range = [-2.989, 9.472]
+		// second part a_range = [-0.102, 0.099]
+		Interval[] aRanges = { new Interval(-2.989, 9.472), new Interval(-0.102, 0.099) };
+
+		AutomatonMode[] modes = { am, am2 };
+
+		for (int i = 0; i < 2; ++i)
+		{
+			AutomatonMode m = modes[i];
+			// v' = 10 - 10*x - 3*v + [-36, 8] * [-0.05, 0]
+			ExpressionInterval vDer = m.flowDynamics.get("v");
+			Assert.assertEquals("v der expression part is correct in " + m.name,
+					"10 - 10 * x - 3 * v", vDer.getExpression().toDefaultString());
+
+			Interval in = vDer.getInterval();
+			Assert.assertNotNull("v-der in " + m.name + " does not have interval", in);
+
+			Interval aRange = aRanges[i];
+			aRange.min -= BLOAT;
+			aRange.max += BLOAT;
+			Interval expectedI = Interval.mult(aRange, new Interval(-PERIOD, 0));
+
+			Assert.assertEquals("v_der-interval.max was wrong in mode " + m.name, expectedI.max,
+					in.max, 1e-3);
+			Assert.assertEquals("v_der-interval.min was wrong in mode " + m.name, expectedI.min,
+					in.min, 1e-3);
+		}
 	}
 }

@@ -26,6 +26,8 @@ import com.verivital.hyst.ir.base.AutomatonMode;
 import com.verivital.hyst.ir.base.AutomatonTransition;
 import com.verivital.hyst.ir.base.BaseComponent;
 import com.verivital.hyst.ir.base.ExpressionInterval;
+import com.verivital.hyst.passes.complex.ConvertLutFlowsPass;
+import com.verivital.hyst.passes.complex.FlattenAutomatonPass;
 import com.verivital.hyst.passes.complex.hybridize.HybridizeMixedTriggeredPass;
 import com.verivital.hyst.printers.DReachPrinter;
 import com.verivital.hyst.printers.FlowstarPrinter;
@@ -511,7 +513,22 @@ public class PrintersTest
 	}
 
 	@Test
-	public void testPrintLutModelWithoutPython()
+	public void testPrintLutModelFlatten()
+	{
+		String cfgPath = UNIT_BASEDIR + "lut_table/lut_table.cfg";
+		String xmlPath = UNIT_BASEDIR + "lut_table/lut_table.xml";
+
+		SpaceExDocument doc = SpaceExImporter.importModels(cfgPath, xmlPath);
+		Map<String, Component> componentTemplates = TemplateImporter.createComponentTemplates(doc);
+		Configuration config = com.verivital.hyst.importer.ConfigurationMaker.fromSpaceEx(doc,
+				componentTemplates);
+
+		new FlattenAutomatonPass().runTransformationPass(config, "");
+		new ConvertLutFlowsPass().runTransformationPass(config, "");
+	}
+
+	@Test
+	public void testPrintLutModelWithoutPythonToFlowstar()
 	{
 		String cfgPath = UNIT_BASEDIR + "lut_table/lut_table.cfg";
 		String xmlPath = UNIT_BASEDIR + "lut_table/lut_table.xml";
