@@ -30,6 +30,14 @@ def parser(guard_sympy, varorder):
         loc.append([])
     # print "Temp",loc
     b = []
+
+    if guard_sympy[0] == "FALSE":
+        guard_sympy[0] = varorder[0]+" <= 0"
+        guard_sympy.append(varorder[0]+" >= 1")
+
+    if guard_sympy[0] == "TRUE":
+        guard_sympy[0] = "0*"+varorder[0]+" <= 0"
+
     for eq in guard_sympy:
         eq = eq.replace(" ", "")
         # print eq
@@ -41,6 +49,9 @@ def parser(guard_sympy, varorder):
         if len(eq_1) == 1:
             eq_1 = re.split('>=', eq)
             opposite = True
+
+        if (eq_1[1].startswith('+-')):
+            eq_1[1] = "-"+eq_1[1][4:]
 
         b.append(float(eq_1[1]))
         if opposite:
