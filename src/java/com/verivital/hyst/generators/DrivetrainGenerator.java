@@ -55,6 +55,9 @@ public class DrivetrainGenerator extends ModelGenerator
 	@Option(name = "-reverse_errors", usage = "add error modes instead of transitions if modes are visited in reverse order")
 	private boolean reverseErrors = false;
 
+	@Option(name = "-reverse_errors_epsilon", usage = "epsilon tolerance to used when creating guards to the reverse error modes")
+	private double reverseErrorsEpsilon = 0.00001;
+
 	////////////// parameters ////////////////
 	final static String[] inputs = new String[] { "-5", "5" };
 
@@ -199,8 +202,10 @@ public class DrivetrainGenerator extends ModelGenerator
 			AutomatonMode error = rv.createMode("error");
 			error.invariant = Constant.TRUE;
 
-			rv.createTransition(loc2, error).guard = FormulaParser.parseGuard("x1 <= -alpha");
-			rv.createTransition(loc3, error).guard = FormulaParser.parseGuard("x1 <= alpha");
+			rv.createTransition(loc2, error).guard = FormulaParser
+					.parseGuard("x1 <= -alpha - " + reverseErrorsEpsilon);
+			rv.createTransition(loc3, error).guard = FormulaParser
+					.parseGuard("x1 <= alpha - " + reverseErrorsEpsilon);
 
 			for (String var : rv.variables)
 				error.flowDynamics.put(var, new ExpressionInterval(new Constant(0)));
