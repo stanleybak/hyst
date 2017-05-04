@@ -164,21 +164,7 @@ public class DrivetrainGenerator extends ModelGenerator
 		loc2_u2.invariant = Constant.TRUE;
 		loc3_u2.invariant = Constant.TRUE;
 
-		if (!forceHighInput)
-		{
-			AutomatonMode loc1_u1 = rv.createMode("negAngleInit");
-
-			// create input transitions when the time reaches 0.2
-			AutomatonMode pre = loc1_u1;
-			AutomatonMode post = loc1_u2;
-
-			rv.createTransition(pre, post).guard = FormulaParser.parseGuard("t >= " + switchTime);
-
-			pre.invariant = FormulaParser.parseInvariant("t <= " + switchTime);
-
-			makeDynamics(loc1_u1.flowDynamics, theta, addTime, alphas[0], k_s[0], inputs[0]);
-		}
-
+		AutomatonMode negAngleInit = null;
 		AutomatonMode loc1 = transitionLocs[0];
 		AutomatonMode loc2 = transitionLocs[1];
 		AutomatonMode loc3 = transitionLocs[2];
@@ -191,8 +177,22 @@ public class DrivetrainGenerator extends ModelGenerator
 				FormulaParser.parseInvariant("alpha <= x1"));
 
 		rv.createTransition(loc1, loc2).guard = FormulaParser.parseGuard("x1 >= -alpha");
-
 		rv.createTransition(loc2, loc3).guard = FormulaParser.parseGuard("x1 >= alpha");
+
+		if (!forceHighInput)
+		{
+			negAngleInit = rv.createMode("negAngleInit");
+
+			// create input transitions when the time reaches 0.2
+			AutomatonMode pre = negAngleInit;
+			AutomatonMode post = loc1_u2;
+
+			rv.createTransition(pre, post).guard = FormulaParser.parseGuard("t >= " + switchTime);
+
+			pre.invariant = FormulaParser.parseInvariant("t <= " + switchTime);
+
+			makeDynamics(negAngleInit.flowDynamics, theta, addTime, alphas[0], k_s[0], inputs[0]);
+		}
 
 		if (reverseErrors)
 		{
@@ -204,6 +204,10 @@ public class DrivetrainGenerator extends ModelGenerator
 
 			for (String var : rv.variables)
 				error.flowDynamics.put(var, new ExpressionInterval(new Constant(0)));
+
+			if (negAngleInit != null)
+				rv.createTransition(negAngleInit, error).guard = FormulaParser
+						.parseGuard("x1 >= -alpha");
 		}
 		else
 		{
