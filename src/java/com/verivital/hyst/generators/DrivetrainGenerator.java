@@ -174,10 +174,20 @@ public class DrivetrainGenerator extends ModelGenerator
 
 		loc1.invariant = Expression.and(loc1.invariant,
 				FormulaParser.parseInvariant("x1 <= -alpha"));
-		loc2.invariant = Expression.and(loc2.invariant,
-				FormulaParser.parseInvariant("-alpha <= x1 <= alpha"));
-		loc3.invariant = Expression.and(loc3.invariant,
-				FormulaParser.parseInvariant("alpha <= x1"));
+
+		if (reverseErrors)
+			loc2.invariant = Expression.and(loc2.invariant, FormulaParser
+					.parseInvariant("-alpha - " + reverseErrorsEpsilon + " <= x1 <= alpha"));
+		else
+			loc2.invariant = Expression.and(loc2.invariant,
+					FormulaParser.parseInvariant("-alpha <= x1 <= alpha"));
+
+		if (reverseErrors)
+			loc3.invariant = Expression.and(loc3.invariant,
+					FormulaParser.parseInvariant("alpha - " + reverseErrorsEpsilon + " <= x1"));
+		else
+			loc3.invariant = Expression.and(loc3.invariant,
+					FormulaParser.parseInvariant("alpha <= x1"));
 
 		rv.createTransition(loc1, loc2).guard = FormulaParser.parseGuard("x1 >= -alpha");
 		rv.createTransition(loc2, loc3).guard = FormulaParser.parseGuard("x1 >= alpha");

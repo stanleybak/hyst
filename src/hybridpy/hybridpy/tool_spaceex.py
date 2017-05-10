@@ -93,7 +93,7 @@ class SpaceExTool(HybridTool):
 
             proc.wait()
 
-            print "SpaceEx return code was " + str(proc.returncode)
+            print "SpaceEx return code was {}".format(proc.returncode)
 
             if rv == RunCode.SUCCESS: # exit code wasn't set during output
                 if proc.returncode != 0:

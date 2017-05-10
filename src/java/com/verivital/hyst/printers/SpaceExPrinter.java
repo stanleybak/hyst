@@ -81,6 +81,9 @@ public class SpaceExPrinter extends ToolPrinter
 	@Option(name = "-flowpipe_tol", usage = "flowpipe-tolerance parameter (0 = skip)", metaVar = "VAL")
 	String flowpipeTol = "auto";
 
+	@Option(name = "-skipsampling", usage = "skip printing sampling time")
+	boolean skipSamplingTime = false;
+
 	@Option(name = "-skiptol", usage = "skip printing error tolerances")
 	boolean skipTol = false;
 
@@ -171,7 +174,7 @@ public class SpaceExPrinter extends ToolPrinter
 			try
 			{
 				Writer w = new BufferedWriter(new FileWriter(new File(cfgFilename)));
-				w.write(spaceex_printer.getCFGString(skipTol));
+				w.write(spaceex_printer.getCFGString(skipTol, skipSamplingTime));
 				w.close();
 			}
 			catch (IOException e)
@@ -182,7 +185,7 @@ public class SpaceExPrinter extends ToolPrinter
 		else
 		{
 			// it will get printed to stdout
-			printLine("\n" + spaceex_printer.getCFGString(skipTol));
+			printLine("\n" + spaceex_printer.getCFGString(skipTol, skipSamplingTime));
 		}
 
 	}

@@ -647,7 +647,7 @@ public class SpaceExXMLPrinter
 	 * 
 	 * @param filename
 	 */
-	public String getCFGString(boolean skipTol)
+	public String getCFGString(boolean skipTol, boolean skipSamplingTime)
 	{
 		StringBuffer rv = new StringBuffer();
 
@@ -661,7 +661,9 @@ public class SpaceExXMLPrinter
 		if (config.flowpipeTol > 0)
 			appendCfgString(rv, "flowpipe-tolerance", Double.toString(config.flowpipeTol));
 
-		appendCfgString(rv, "sampling-time", Double.toString(config.samplingTime).toString());
+		if (!skipSamplingTime)
+			appendCfgString(rv, "sampling-time", Double.toString(config.samplingTime).toString());
+
 		appendCfgString(rv, "time-horizon", Double.toString(config.timeHorizon));
 		appendCfgString(rv, "iter-max", Integer.toString(config.maxIterations));
 		appendCfgString(rv, "output-format", config.outputFormat);
