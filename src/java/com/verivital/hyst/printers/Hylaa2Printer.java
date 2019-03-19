@@ -49,7 +49,7 @@ public class Hylaa2Printer extends ToolPrinter
 
 	@Option(name = "-settings", usage = "space-separated hylaa settings initialization. For example, "
 			+ "'-settings plot_settings.plot_mode=PlotSettings.PLOT_LIVE "
-			+ "settings.aggstrat = aggstrat.Unaggregated()'", handler = StringArrayOptionHandler.class)
+			+ "settings.aggstrat=aggstrat.Unaggregated()'", handler = StringArrayOptionHandler.class)
 	public List<String> settings = new ArrayList<String>();
 
 	private static final String COMMENT_CHAR = "#";
