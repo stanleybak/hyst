@@ -48,8 +48,8 @@ public class Hylaa2Printer extends ToolPrinter
 	public double step;
 
 	@Option(name = "-settings", usage = "space-separated hylaa settings initialization. For example, "
-			+ "'-settings plot_settings.plot_mode=PlotSettings.PLOT_FULL "
-			+ "settings.deaggregation=False'", handler = StringArrayOptionHandler.class)
+			+ "'-settings plot_settings.plot_mode=PlotSettings.PLOT_LIVE "
+			+ "settings.aggstrat = aggstrat.Unaggregated()'", handler = StringArrayOptionHandler.class)
 	public List<String> settings = new ArrayList<String>();
 
 	private static final String COMMENT_CHAR = "#";
@@ -98,7 +98,7 @@ public class Hylaa2Printer extends ToolPrinter
 			rv.add("from hylaa.settings import HylaaSettings, PlotSettings");
 			rv.add("from hylaa.core import Core");
 			rv.add("from hylaa.stateset import StateSet");
-			rv.add("from hylaa import lputil");
+			rv.add("from hylaa import lputil, aggstrat");
 
 			return rv;
 		}
