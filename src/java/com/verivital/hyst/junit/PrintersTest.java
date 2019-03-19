@@ -783,7 +783,9 @@ public class PrintersTest
 		// simplify expressions first
 		String passParam = SimplifyExpressionsPass.makeParam(true);
 		new SimplifyExpressionsPass().runVanillaPass(c, passParam);
-		printer.print(c, "", "model.xml");
+
+		String printer_param = "-settings settings.stdout=HylaaSettings.STDOUT_VERBOSE settings.aggstrat=aggstrat.Unaggregated()";
+		printer.print(c, printer_param, "model.xml");
 
 		String out = printer.outputString.toString();
 
